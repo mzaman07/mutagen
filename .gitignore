@@ -9,3 +9,4 @@ coverage
 .cache
 *.egg-info
 .coverage
+*.iml
