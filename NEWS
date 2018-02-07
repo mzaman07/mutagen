@@ -1,7 +1,40 @@
-1.39 - 2017-??-??
+1.41.0 - 2018-??-??
+-------------------
+
+
+1.40.0 - 2018-01-25
+-------------------
+
+* APEv2: Ensures tags are saved in a deterministic way :pr:`329`
+  (:user:`cushy007`)
+* Restore WinXP support for the CLI tools :bug:`332`
+* easymp4: Fix EasyMP4.add_tags() when no tags exist :bug:`334`
+* id3: Fix PyCharm not being able to resolve id3 frame class references
+  :bug:`336`
+* Support pathlib.Path objects for paths (PEP 519) :bug:`337` :pr:`338`
+  (:user:`Andrew Rabert <nvllsvm>`)
+* Use semver for versioning
+
+
+1.39 - 2017-11-05
 -----------------
 
-* Tests: Require `hypothesis <https://hypothesis.readthedocs.io>`__
+* Tests:
+
+  * Require `hypothesis <https://hypothesis.readthedocs.io>`__
+  * Run pycodestyle/pyflakes tests by default. Skip with ``--no-quality`` or
+    ``-m no quality`` when using pytest directly.
+
+* Python 3.3 is no longer supported
+* MP3: Improved bitrate accuracy for files with XING header :bug:`328`
+  (thanks :user:`Michaël Defferrard <mdeff>`)
+* ASF: Fix case where some tags resulted in broken ASFUnicodeAttribute
+  instances :bug:`324`
+* Add support for filesystems which don't support opening files read/write
+  (gvfs over fuse for example) :bug:`300`
+* mid3v2: Add support for USLT :bug:`306`
+* Minor improvements by :user:`Borewit` and
+  :user:`Evan Purkhiser <EvanPurkhiser>`
 
 
 1.38 - 2017-06-01

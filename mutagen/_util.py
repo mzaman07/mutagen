@@ -16,6 +16,7 @@ import sys
 import struct
 import codecs
 import errno
+import decimal
 from io import BytesIO
 
 try:
@@ -34,14 +35,23 @@ from ._compat import chr_, PY2, iteritems, iterbytes, integer_types, xrange, \
     izip, text_type, reraise
 
 
+def intround(value):
+    """Given a float returns a rounded int. Should give the same result on
+    both Py2/3
+    """
+
+    return int(decimal.Decimal.from_float(
+        value).to_integral_value(decimal.ROUND_HALF_EVEN))
+
+
 def is_fileobj(fileobj):
     """Returns:
         bool: if an argument passed ot mutagen should be treated as a
             file object
     """
 
-    # open() only handles str/bytes, so we can be strict
-    return not isinstance(fileobj, (text_type, bytes))
+    return not (isinstance(fileobj, (text_type, bytes)) or
+                hasattr(fileobj, "__fspath__"))
 
 
 def verify_fileobj(fileobj, writable=False):
@@ -200,6 +210,10 @@ def _openfile(instance, filething, filename, fileobj, writable, create):
     if filething is not None:
         if is_fileobj(filething):
             fileobj = filething
+        elif hasattr(filething, "__fspath__"):
+            filename = filething.__fspath__()
+            if not isinstance(filename, (bytes, text_type)):
+                raise TypeError("expected __fspath__() to return a filename")
         else:
             filename = filething
 
@@ -622,7 +636,7 @@ def get_size(fileobj):
 
 
 def read_full(fileobj, size):
-    """Like fileobj.read but raises IOError if no all requested data is
+    """Like fileobj.read but raises IOError if not all requested data is
     returned.
 
     If you want to distinguish IOError and the EOS case, better handle

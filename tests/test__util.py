@@ -3,7 +3,8 @@
 from mutagen._util import DictMixin, cdata, insert_bytes, delete_bytes, \
     decode_terminated, dict_match, enum, get_size, BitReader, BitReaderError, \
     resize_bytes, seek_end, mmap_move, verify_fileobj, fileobj_name, \
-    read_full, flags, resize_file, fallback_move, encode_endian, loadfile
+    read_full, flags, resize_file, fallback_move, encode_endian, loadfile, \
+    intround, verify_filename
 from mutagen._compat import text_type, itervalues, iterkeys, iteritems, PY2, \
     cBytesIO, xrange, BytesIO, builtins
 from tests import TestCase, get_temp_empty
@@ -17,6 +18,14 @@ try:
     import fcntl
 except ImportError:
     fcntl = None
+
+import pytest
+
+
+def test_intround():
+    assert intround(2.5) == 2
+    assert intround(2.6) == 3
+    assert intround(2.4) == 2
 
 
 class FDict(DictMixin):
@@ -781,6 +790,35 @@ class Tloadfile(TestCase):
 
         assert raised
 
+    def test_filename_from_fspath(self):
+
+        class FilePath(object):
+            def __init__(self, filename):
+                self.filename = filename
+
+            def __fspath__(self):
+                return self.filename
+
+        @loadfile(method=False, writable=True)
+        def file_func(filething):
+            fileobj = filething.fileobj
+            assert fileobj.read(3) == b"foo"
+            fileobj.seek(0, 2)
+            fileobj.write(b"bar")
+
+        filename = get_temp_empty()
+        try:
+            with open(filename, "wb") as h:
+                h.write(b"foo")
+            file_func(FilePath(filename))
+            with open(filename, "rb") as h:
+                assert h.read() == b"foobar"
+        finally:
+            os.unlink(filename)
+
+        with pytest.raises(TypeError, match=r'.*__fspath__.*'):
+            file_func(FilePath(42))
+
 
 class Tread_full(TestCase):
 
@@ -959,3 +997,22 @@ class TBitReader(TestCase):
         self.assertFalse(r.is_aligned())
         r.bits(1)
         self.assertTrue(r.is_aligned())
+
+
+class Tverify_filename(TestCase):
+
+    def test_verify_filename_fail(self):
+        self.assertRaises(ValueError, verify_filename, object())
+
+    def test_verify_filename(self):
+
+        class FilePath(object):
+            def __init__(self, filename):
+                self.filename = filename
+
+            def __fspath__(self):
+                return self.filename
+
+        verify_filename(FilePath("foo"))
+        verify_filename("foo")
+        verify_filename(b"foo")
