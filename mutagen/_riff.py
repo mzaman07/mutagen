@@ -67,17 +67,17 @@ class RiffChunkHeader():
 
         header = fileobj.read(self.HEADER_SIZE)
         if len(header) < self.HEADER_SIZE:
-            raise InvalidChunk()
+            raise InvalidChunk('Header size < %i' % self.HEADER_SIZE)
 
         self.id, self.data_size = struct.unpack(self.__struct, header)
 
         try:
             self.id = self.id.decode('ascii').rstrip()
-        except UnicodeDecodeError:
-            raise InvalidChunk()
+        except UnicodeDecodeError as e:
+            raise InvalidChunk(e)
 
         if not is_valid_chunk_id(self.id):
-            raise InvalidChunk()
+            raise InvalidChunk('Invalid chunk ID %s' % self.id)
 
         self.size = self.HEADER_SIZE + self.data_size
         self.data_offset = fileobj.tell()
@@ -146,6 +146,8 @@ class RiffFile(object):
 
         # Read the RIFF file Type
         self.fileType = fileobj.read(4).decode('ascii')
+
+        self.__next_offset = fileobj.tell()
 
         # Load all RIFF subchunks
         while True:
