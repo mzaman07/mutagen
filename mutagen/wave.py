@@ -67,7 +67,7 @@ class WaveStreamInfo(StreamInfo):
 
         waveFile = WaveFile(fileobj)
         try:
-            waveFormatChunk = waveFile['fmt']
+            waveFormatChunk = waveFile[u'fmt']
         except KeyError as e:
             raise error(str(e))
 
@@ -87,7 +87,7 @@ class WaveStreamInfo(StreamInfo):
 
         # Calculate duration
         try:
-            waveDataChunk = waveFile['data']
+            waveDataChunk = waveFile[u'data']
             self.number_of_samples = waveDataChunk.data_size / block_align
         except KeyError:
             self.number_of_samples = 0
@@ -105,7 +105,7 @@ class _WaveID3(ID3):
 
     def _pre_load_header(self, fileobj):
         try:
-            fileobj.seek(WaveFile(fileobj)['id3'].data_offset)
+            fileobj.seek(WaveFile(fileobj)[u'id3'].data_offset)
         except (InvalidChunk, KeyError):
             raise ID3NoHeaderError("No ID3 chunk")
 
@@ -118,10 +118,10 @@ class _WaveID3(ID3):
 
         wave_file = WaveFile(fileobj)
 
-        if 'id3' not in wave_file:
-            wave_file.insert_chunk('id3')
+        if u'id3' not in wave_file:
+            wave_file.insert_chunk(u'id3')
 
-        chunk = wave_file['id3']
+        chunk = wave_file[u'id3']
 
         try:
             data = self._prepare_data(
@@ -147,7 +147,7 @@ def delete(filething):
     """Completely removes the ID3 chunk from the RIFF file"""
 
     try:
-        del RiffFile(filething.fileobj)['id3']
+        del RiffFile(filething.fileobj)[u'id3']
     except KeyError:
         pass
 
